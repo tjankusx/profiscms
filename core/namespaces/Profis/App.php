@@ -45,8 +45,15 @@ abstract class App {
 	}
 
 	public function __get($propertyName) {
-		if( isset($this->components[$propertyName]) )
+		if( isset($this->components[$propertyName]) ) {
+			$component = $this->components[$propertyName];
+			if( !$component->initialized ) {
+				$component->init();
+				$component->initialized = true;
+			}
 			return $this->components[$propertyName];
+		}
+		return null;
 	}
 
 	public function __construct($config = array()) {
@@ -78,15 +85,17 @@ abstract class App {
 			$class = $componentInfo['class'];
 			$component = new $class();
 			foreach( $componentInfo as $key => $value ) {
-				if( $key !== 'class' && $key != 'initOnDemand' )
+				if( $key !== 'class' && $key != 'eagerInit' )
 					$component->$key = $value;
 			}
 			$this->components[$componentId] = $component;
 		}
 
 		foreach( $this->config['components'] as $componentId => $componentInfo ) {
-			if( !isset($componentInfo['initOnDemand']) || $componentInfo['initOnDemand'] )
+			if( isset($componentInfo['eagerInit']) && $componentInfo['eagerInit'] ) {
 				$this->components[$componentId]->init();
+				$this->components[$componentId]->initialized = true;
+			}
 		}
 	}
 
