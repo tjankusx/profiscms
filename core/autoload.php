@@ -14,17 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http:#www.gnu.org/licenses/>.
 
-namespace Profis\Web;
+if (version_compare(phpversion(), "5.3") < 0) die('ProfisCMS requires at least PHP 5.3 version.');
 
-class BadUrlException extends \Exception {
-	private $url;
+define('DS', '/');
 
-	public function __construct($url, $message = "Bad URL", $previous = null) {
-		$this->url = $url;
-		parent::__construct($message, 0, $previous);
+spl_autoload_register(function($cls) {
+	if( strpos($cls, '\\') !== false ) {
+		$cls = ltrim($cls, '\\');
+		if( DS != '\\' )
+			$cls = str_replace('\\', DS, $cls);
+		$path = dirname(__FILE__) . DS . 'namespaces' . DS . $cls . '.php';
+		if( is_file($path) ) {
+			require_once $path;
+			return true;
+		}
 	}
-
-	public function getUrl() {
-		return $this->url;
-	}
-}
+	return false;
+});
