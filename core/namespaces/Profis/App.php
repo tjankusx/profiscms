@@ -19,7 +19,7 @@ namespace Profis;
 /**
  * Class App
  *
- * @property \Profis\Db\NestedPDO $db
+ * @property \Profis\Db\Components\DbConnection $db
  *
  * @package Profis
  */

@@ -35,6 +35,17 @@ class DbConnection extends Component {
 	
 	public $pdoOptions = array();
 
+	/** @var \Profis\Db\CommandBuilder */
+	public $commandBuilder = null;
+
+	public $commandBuilderClass = null;
+
+	public $commandBuilderMap = array(
+		'mysql' => '\\Profis\\Db\\MySQL\\CommandBuilder',
+		'pgsql' => '\\Profis\\Db\\Postgres\\CommandBuilder',
+		'sqlite' => '\\Profis\\Db\\SQLite\\CommandBuilder',
+	);
+
 	public function __construct() {
 	}
 
@@ -42,6 +53,15 @@ class DbConnection extends Component {
 		$this->pdoOptions[PDO::MYSQL_ATTR_INIT_COMMAND] = 'SET NAMES utf8';
 		$this->driver = new $this->pdoClass($this->dsn, $this->user, $this->pass, $this->pdoOptions);
 		$this->driver->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+		if( $this->commandBuilderClass === null
+			&& !empty($this->commandBuilderMap)
+			&& is_array($this->commandBuilderMap)
+			&& preg_match('#^(.+?):.#', $this->dsn, $match)
+			&& isset($this->commandBuilderMap[$match[1]]) )
+				$this->commandBuilderClass = $this->commandBuilderMap[$match[1]];
+		if( $this->commandBuilderClass !== null )
+			$this->commandBuilder = new $this->commandBuilderClass($this->driver);
 	}
 
 	public function __call($name, $args) {
